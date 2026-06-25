@@ -143,6 +143,9 @@ class TrainManiFlowRoboTwinWorkspace:
             self.ema_model.set_normalizer(normalizer)
 
         # configure lr scheduler
+        # global_step counts raw batches; scheduler.step() is called only on
+        # optimizer steps (every gradient_accumulate_every batches), so convert.
+        _sched_last_epoch = (self.global_step // cfg.training.gradient_accumulate_every) - 1
         lr_scheduler = get_scheduler(
             cfg.training.lr_scheduler,
             optimizer=self.optimizer,
@@ -150,9 +153,7 @@ class TrainManiFlowRoboTwinWorkspace:
             num_training_steps=(
                 len(train_dataloader) * cfg.training.num_epochs) \
                     // cfg.training.gradient_accumulate_every,
-            # pytorch assumes stepping LRScheduler every epoch
-            # however huggingface diffusers steps it every batch
-            last_epoch=self.global_step-1
+            last_epoch=_sched_last_epoch
         )
 
         # configure ema
@@ -309,7 +310,7 @@ class TrainManiFlowRoboTwinWorkspace:
                 step_log.update(runner_log)
 
             # run validation
-            if (self.epoch % cfg.training.val_every) == 0 and RUN_VALIDATION:
+            if ((self.epoch % cfg.training.val_every) == 0 or self.epoch >= 100) and RUN_VALIDATION:
                 with torch.no_grad():
                     val_losses = list()
                     with tqdm.tqdm(val_dataloader, desc=f"Validation epoch {self.epoch}", 
@@ -325,7 +326,7 @@ class TrainManiFlowRoboTwinWorkspace:
                                 and batch_idx >= (cfg.training.max_val_steps-1):
                                 break
                     if len(val_losses) > 0:
-                        val_loss = torch.mean(torch.tensor(val_losses)).item()
+                        val_loss = torch.nanmean(torch.tensor(val_losses)).item()
                         # log epoch average validation loss
                         step_log['val_loss'] = val_loss
             
@@ -351,12 +352,27 @@ class TrainManiFlowRoboTwinWorkspace:
             if env_runner is None or step_log.get('test_mean_score', None) is None:
                 step_log['test_mean_score'] = - train_loss
 
-            # checkpoint
-            if (self.epoch % cfg.training.checkpoint_every) == 0 and cfg.checkpoint.save_ckpt:
+            # ── per-epoch console summary ──────────────────────────────────
+            val_loss_str = f"  val={step_log['val_loss']:.4f}" if 'val_loss' in step_log else ""
+            mse_str      = f"  mse={step_log['train_action_mse_error']:.4f}" if 'train_action_mse_error' in step_log else ""
+            lr_str       = f"  lr={step_log.get('lr', 0):.2e}"
+            cprint(
+                f"[ep {self.epoch:04d}]  train={train_loss:.4f}{val_loss_str}{mse_str}{lr_str}",
+                'cyan'
+            )
 
-                if cfg.checkpoint.save_last_ckpt:
+            # checkpoint
+            # Before ep100: periodic saves every checkpoint_every epochs.
+            # From ep100 onward: check topk every epoch (catches the best without
+            # missing it between periodic intervals); latest.ckpt still saved
+            # periodically so resume always works.
+            _is_periodic = (self.epoch % cfg.training.checkpoint_every) == 0
+            _run_ckpt = (_is_periodic or self.epoch >= 100) and cfg.checkpoint.save_ckpt
+
+            if _run_ckpt:
+                if _is_periodic and cfg.checkpoint.save_last_ckpt:
                     self.save_checkpoint()
-                if cfg.checkpoint.save_last_snapshot:
+                if _is_periodic and cfg.checkpoint.save_last_snapshot:
                     self.save_snapshot()
 
                 # sanitize metric names
@@ -364,17 +380,7 @@ class TrainManiFlowRoboTwinWorkspace:
                 for key, value in step_log.items():
                     new_key = key.replace('/', '_')
                     metric_dict[new_key] = value
-                
-                # if not cfg.policy.use_pc_color:
-                #     if not os.path.exists(f'checkpoints/{self.cfg.robotwin_task.name}'):
-                #         os.makedirs(f'checkpoints/{self.cfg.robotwin_task.name}')
-                #     save_path = f'checkpoints/{self.cfg.robotwin_task.name}/{self.epoch + 1}.ckpt'
-                # else:
-                #     if not os.path.exists(f'checkpoints/{self.cfg.robotwin_task.name}_w_rgb'):
-                #         os.makedirs(f'checkpoints/{self.cfg.robotwin_task.name}_w_rgb')
-                #     save_path = f'checkpoints/{self.cfg.robotwin_task.name}_w_rgb/{self.epoch + 1}.ckpt'
 
-                # self.save_checkpoint(save_path)
                 try:
                     topk_ckpt_path = topk_manager.get_ckpt_path(metric_dict)
                 except Exception as e:
