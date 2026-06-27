@@ -1,0 +1,362 @@
+# =============================================================================
+# Real Robot DP3 Configuration
+# All topic names, paths, and parameters are configured here.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# ROS2 Topics — Observation (used during data collection and policy execution)
+# ZED combined bags use depth+rgb images; robot/gripper topics are unchanged.
+# ---------------------------------------------------------------------------
+topics:
+  depth:             /zed/zed_node/depth/depth_registered
+  cam_info:          /zed/zed_node/depth/camera_info
+  rgb:               /zed/zed_node/rgb/color/rect/image
+  point_cloud:       /zed/zed_node/point_cloud/cloud_registered
+  robot1_joints:     /robot1/joint_states
+  robot2_joints:     /robot2/joint_states
+  gripper1_joints:   /gripper1/joint_states
+  gripper2_joints:   /gripper2/joint_states
+
+# ---------------------------------------------------------------------------
+# ROS2 Topics — Action (used during policy execution only)
+# Robots use JointTrajectoryController — publishes JointTrajectory with 50ms horizon
+# so the UR controller smoothly interpolates between DP3 steps instead of jerking.
+# Grippers use Float64MultiArray passthrough to your gripper driver.
+# ---------------------------------------------------------------------------
+action_topics:
+  robot1_command:    /robot1_joint_trajectory_controller/joint_trajectory
+  robot2_command:    /robot2_joint_trajectory_controller/joint_trajectory
+  gripper1_command:  /gripper1/cmd          # adjust to match your gripper driver
+  gripper2_command:  /gripper2/cmd          # adjust to match your gripper driver
+
+# ---------------------------------------------------------------------------
+# Joint Names — canonical order used for agent_pos and action vectors
+# DP3 agent_pos: [r1_pan, r1_lift, r1_elbow, r1_w1, r1_w2, r1_w3, g1, r2_pan, r2_lift, r2_elbow, r2_w1, r2_w2, r2_w3, g2]
+# ---------------------------------------------------------------------------
+joint_names:
+  robot1:
+    - robot1_shoulder_pan_joint
+    - robot1_shoulder_lift_joint
+    - robot1_elbow_joint
+    - robot1_wrist_1_joint
+    - robot1_wrist_2_joint
+    - robot1_wrist_3_joint
+  robot2:
+    - robot2_shoulder_pan_joint
+    - robot2_shoulder_lift_joint
+    - robot2_elbow_joint
+    - robot2_wrist_1_joint
+    - robot2_wrist_2_joint
+    - robot2_wrist_3_joint
+  gripper1:
+    - gripper1_finger_joint
+  gripper2:
+    - gripper2_finger_joint
+
+# ---------------------------------------------------------------------------
+# Rosbag Data — 16June Thin sessions
+# Each session is a self-contained bag folder under base_dir containing
+# all ZED + robot/gripper topics.  Add or remove sessions as needed.
+# ---------------------------------------------------------------------------
+rosbag:
+  base_dir: "/media/rosi/T7 Shield/16_June_Thin"
+  sessions:
+    - session_20260616_020253_filtered
+    - session_20260616_020348_filtered
+    - session_20260616_020632_filtered
+    - session_20260616_020717_filtered
+    - session_20260616_020756_filtered
+    - session_20260616_020837_filtered
+    - session_20260616_020952_filtered
+    - session_20260616_021033_filtered
+    - session_20260616_021243_filtered
+    - session_20260616_021324_filtered
+    - session_20260616_022822_filtered
+    - session_20260616_023755_filtered
+    - session_20260616_023955_filtered
+    - session_20260616_024109_filtered
+    - session_20260616_024156_filtered
+    - session_20260616_024242_filtered
+    - session_20260616_024443_filtered
+    - session_20260616_024627_filtered
+    - session_20260616_024717_filtered
+    - session_20260616_024804_filtered
+    - session_20260616_024850_filtered
+    - session_20260616_024939_filtered
+    - session_20260616_025536_filtered
+    - session_20260616_025623_filtered
+    - session_20260616_025716_filtered
+    - session_20260616_025800_filtered
+    - session_20260616_025953_filtered
+    - session_20260616_030034_filtered
+    - session_20260616_032611_filtered
+    - session_20260616_032655_filtered
+    - session_20260616_033148_filtered
+    - session_20260616_033400_filtered
+    - session_20260616_033607_filtered
+    - session_20260616_033847_filtered
+    - session_20260616_033933_filtered
+    - session_20260616_034017_filtered
+    - session_20260616_034105_filtered
+    - session_20260616_034147_filtered
+    - session_20260616_034225_filtered
+    - session_20260616_034310_filtered
+    - session_20260616_034350_filtered
+    - session_20260616_034429_filtered
+    - session_20260616_034529_filtered
+    - session_20260616_034610_filtered
+    - session_20260616_034652_filtered
+    - session_20260616_034732_filtered
+    - session_20260616_034816_filtered
+    - session_20260616_034858_filtered
+    - session_20260616_035006_filtered
+    - session_20260616_035115_filtered
+    - session_20260616_035157_filtered
+    - session_20260616_035239_filtered
+    - session_20260616_035328_filtered
+    - session_20260616_035410_filtered
+    - session_20260616_035524_filtered
+    - session_20260616_035605_filtered
+    - session_20260616_054007_filtered
+    - session_20260616_054208_filtered
+    - session_20260616_054249_filtered
+    - session_20260616_054404_filtered
+    - session_20260616_054625_filtered
+    - session_20260616_054709_filtered
+    - session_20260616_060306_filtered
+    - session_20260616_060404_filtered
+    - session_20260616_060506_filtered
+    - session_20260616_060549_filtered
+    - session_20260616_060640_filtered
+    - session_20260616_060727_filtered
+    - session_20260616_061018_filtered
+    - session_20260616_062612_filtered
+    - session_20260616_063602_filtered
+    - session_20260616_063646_filtered
+    - session_20260616_063724_filtered
+    - session_20260616_063819_filtered
+    - session_20260616_063901_filtered
+    - session_20260616_063943_filtered
+    - session_20260616_064031_filtered
+    - session_20260616_064109_filtered
+    - session_20260616_064148_filtered
+    - session_20260616_064226_filtered
+    - session_20260616_064307_filtered
+    - session_20260616_064344_filtered
+    - session_20260616_064542_filtered
+    - session_20260616_064624_filtered
+    - session_20260616_064702_filtered
+    - session_20260616_064812_filtered
+    - session_20260616_064857_filtered
+    - session_20260616_064951_filtered
+    - session_20260616_065032_filtered
+    - session_20260616_065128_filtered
+    - session_20260616_065214_filtered
+    - session_20260616_065250_filtered
+    - session_20260616_065331_filtered
+    - session_20260616_065447_filtered
+    - session_20260616_065542_filtered
+    - session_20260616_065631_filtered
+    - session_20260616_065729_filtered
+    - session_20260616_065814_filtered
+    - session_20260616_065859_filtered
+    - session_20260616_065938_filtered
+    - session_20260616_070415_filtered
+    - session_20260616_070459_filtered
+    - session_20260616_070627_filtered
+    - session_20260616_070712_filtered
+    - session_20260616_070758_filtered
+    - session_20260616_070842_filtered
+    - session_20260616_070923_filtered
+    - session_20260616_071007_filtered
+    - session_20260616_071042_filtered
+    - session_20260616_071121_filtered
+    - session_20260616_071206_filtered
+    - session_20260616_071310_filtered
+    - session_20260616_071356_filtered
+    - session_20260616_071437_filtered
+    - session_20260616_071522_filtered
+    - session_20260616_071559_filtered
+    - session_20260616_071643_filtered
+    - session_20260616_071729_filtered
+    - session_20260616_071807_filtered
+    - session_20260616_071856_filtered
+    - session_20260616_071930_filtered
+    - session_20260616_072019_filtered
+    - session_20260616_072116_filtered
+    - session_20260616_072158_filtered
+    - session_20260616_072239_filtered
+    - session_20260616_072316_filtered
+    - session_20260616_072359_filtered
+    - session_20260616_072439_filtered
+    - session_20260616_072521_filtered
+    - session_20260616_072559_filtered
+    - session_20260616_072635_filtered
+    - session_20260616_072717_filtered
+    - session_20260616_072806_filtered
+    - session_20260616_072845_filtered
+    - session_20260616_072925_filtered
+    - session_20260616_073004_filtered
+    - session_20260616_073044_filtered
+    - session_20260616_073133_filtered
+    - session_20260616_073214_filtered
+    - session_20260616_073309_filtered
+    - session_20260616_073357_filtered
+    - session_20260616_073435_filtered
+    - session_20260616_073512_filtered
+    - session_20260616_073548_filtered
+    - session_20260616_073628_filtered
+    - session_20260616_073706_filtered
+    - session_20260616_073750_filtered
+    - session_20260616_074058_filtered
+    - session_20260616_074233_filtered
+    - session_20260616_074314_filtered
+    - session_20260616_074410_filtered
+    - session_20260616_074452_filtered
+    - session_20260616_074532_filtered
+    - session_20260616_074616_filtered
+    - session_20260616_074706_filtered
+    - session_20260616_075008_filtered
+    - session_20260616_075319_filtered
+    - session_20260616_075403_filtered
+    - session_20260616_075443_filtered
+    - session_20260616_075518_filtered
+    - session_20260616_075605_filtered
+    - session_20260616_075646_filtered
+    - session_20260616_075729_filtered
+    - session_20260616_075804_filtered
+    - session_20260616_075847_filtered
+    - session_20260616_075936_filtered
+    - session_20260616_080013_filtered
+    - session_20260616_080050_filtered
+    - session_20260616_080550_filtered
+    - session_20260616_080638_filtered
+    - session_20260616_080725_filtered
+    - session_20260616_080836_filtered
+    - session_20260616_080951_filtered
+    - session_20260616_081031_filtered
+    - session_20260616_081142_filtered
+    - session_20260616_081222_filtered
+    - session_20260616_081345_filtered
+    - session_20260616_081431_filtered
+    - session_20260616_081524_filtered
+    - session_20260616_081610_filtered
+    - session_20260616_081654_filtered
+    - session_20260616_081802_filtered
+    - session_20260616_081849_filtered
+    - session_20260616_081931_filtered
+    - session_20260616_082025_filtered
+    - session_20260616_082219_filtered
+    - session_20260616_082317_filtered
+    - session_20260616_082356_filtered
+    - session_20260616_082440_filtered
+    - session_20260616_082524_filtered
+    - session_20260616_082611_filtered
+    - session_20260616_082652_filtered
+    - session_20260616_082732_filtered
+    - session_20260616_082818_filtered
+    - session_20260616_082907_filtered
+    - session_20260616_082947_filtered
+    - session_20260616_083027_filtered
+    - session_20260616_083105_filtered
+    - session_20260616_083153_filtered
+    - session_20260616_083231_filtered
+    - session_20260616_083309_filtered
+    - session_20260616_083348_filtered
+    - session_20260616_083424_filtered
+    - session_20260616_083511_filtered
+    - session_20260616_083549_filtered
+    - session_20260616_083648_filtered
+    - session_20260616_083815_filtered
+    - session_20260616_083933_filtered
+    - session_20260616_084015_filtered
+    - session_20260616_084058_filtered
+    - session_20260616_084154_filtered
+    - session_20260616_084354_filtered
+    - session_20260616_084441_filtered
+    - session_20260616_084519_filtered
+    - session_20260616_084556_filtered
+    - session_20260616_084631_filtered
+    - session_20260616_084714_filtered
+    - session_20260616_084756_filtered
+    - session_20260616_084847_filtered
+    - session_20260616_084927_filtered
+    - session_20260616_085005_filtered
+    - session_20260616_085045_filtered
+    - session_20260616_085141_filtered
+    - session_20260616_085235_filtered
+    - session_20260616_085330_filtered
+    - session_20260616_085417_filtered
+    - session_20260616_085540_filtered
+    - session_20260616_085711_filtered
+    - session_20260616_085751_filtered
+    - session_20260616_085833_filtered
+    - session_20260616_085911_filtered
+    - session_20260616_090045_filtered
+    - session_20260616_090132_filtered
+    - session_20260616_090223_filtered
+    - session_20260616_090305_filtered
+    - session_20260616_090346_filtered
+    - session_20260616_090455_filtered
+    - session_20260616_090644_filtered
+    - session_20260616_090725_filtered
+    - session_20260616_090804_filtered
+    - session_20260616_090842_filtered
+    - session_20260616_090918_filtered
+    - session_20260616_090958_filtered
+    - session_20260616_091043_filtered
+    - session_20260616_091118_filtered
+    - session_20260616_091156_filtered
+    - session_20260616_091243_filtered
+    - session_20260616_091318_filtered
+    - session_20260616_091350_filtered
+    - session_20260616_091426_filtered
+
+# ---------------------------------------------------------------------------
+# Data Processing
+# ---------------------------------------------------------------------------
+data:
+  output_zarr:    /home/rosi/3D-Diffusion-Policy/3D-Diffusion-Policy/data/real_cable_pull_16june_thin_1024.zarr
+  target_hz:      20
+  n_points:       1024                # store at final resolution — matches task config point_cloud shape
+  sync_tolerance_ms: 100              # max allowed time gap when syncing bags (ms)
+
+# Point cloud workspace crop (camera optical frame, metres)
+# Tune these to tightly bound your table workspace
+workspace:
+  x_min: -0.8
+  x_max:  0.8
+  y_min: -0.6
+  y_max:  0.6
+  z_min:  0.4   # must match z_filter_config.yaml used during training
+  z_max:  1.1   # must match z_filter_config.yaml used during training
+
+# Action — arms use joint deltas; the gripper is BINARY (open/close, no in-between).
+action:
+  max_joint_delta:   0.05   # ~3 deg per step at 20Hz; tune to your teleoperation style
+  max_gripper_delta: 0.1    # (unused — gripper is now binary; kept for reference)
+  gripper_closed_threshold: 0.4   # finger position ≥ this ⇒ "closed" (1); else "open" (0)
+
+# ---------------------------------------------------------------------------
+# Robots — IP addresses and types
+# ---------------------------------------------------------------------------
+robots:
+  robot1:
+    ip:   192.168.1.10
+    type: ur10
+    tf_prefix: robot1_
+  robot2:
+    ip:   192.168.1.20
+    type: ur10e
+    tf_prefix: robot2_
+
+# ---------------------------------------------------------------------------
+# Policy Execution
+# ---------------------------------------------------------------------------
+policy:
+  checkpoint_path:  /home/rosi/3D-Diffusion-Policy/data/outputs/real_cable_pull/checkpoints/latest.ckpt
+  task_config:      real_cable_pull
+  n_action_steps:   8     # must match training n_action_steps
+  inference_steps:  10    # DDIM steps at eval time
+  obs_hz:           20    # observation polling rate (must match training control_freq)
+  rtde_hz:          125   # RTDE polling rate
